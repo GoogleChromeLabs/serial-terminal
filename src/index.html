@@ -1,6 +1,38 @@
 <html>
 <body>
-<button id="connect">Connect</button>
+<p>
+  <button id="connect">Connect</button>
+  <label for="baudrate">Baud rate:</label>
+  <select id="baudrate">
+    <option value="9600">9600</option>
+    <option value="14400">14400</option>
+    <option value="19200">19220</option>
+    <option value="28800">28800</option>
+    <option value="38400">38400</option>
+    <option value="57600">57600</option>
+    <option value="115200" selected>115200</option>
+    <option value="custom">Custom</option>
+  </select>
+  <input id="custom_baudrate" type="number" min="1" placeholder="Enter baudrate..." hidden>
+  <label for="databits">Data bits:</label>
+  <select id="databits">
+    <option value="7">7</option>
+    <option value="8" selected>8</option>
+  </select>
+  <label for="parity">Parity:</label>
+  <select id="parity">
+    <option value="none" selected>None</option>
+    <option value="even">Even</option>
+    <option value="odd">Odd</option>
+  </select>
+  <label for="stopbits">Stop bits:</label>
+  <select id="stopbits">
+    <option value="1" selected>1</option>
+    <option value="2">2</option>
+  </select>
+  <label for="rtscts">Hardware flow control:</label>
+  <input id="rtscts" type="checkbox">
+</p>
 <div id="terminal"></div>
 </body>
 </html>

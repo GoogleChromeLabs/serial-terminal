@@ -20,7 +20,8 @@ import 'xterm/dist/xterm.css';
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('/service-worker.js');
+      const registration =
+          await navigator.serviceWorker.register('/service-worker.js');
       console.log('SW registered: ', registration);
     } catch (registrationError) {
       console.log('SW registration failed: ', registrationError);
@@ -28,31 +29,112 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+let connectButton: HTMLButtonElement;
+let baudRateSelector: HTMLSelectElement;
+let customBaudRateInput: HTMLInputElement;
+let dataBitsSelector: HTMLSelectElement;
+let paritySelector: HTMLSelectElement;
+let stopBitsSelector: HTMLSelectElement;
+let flowControlCheckbox: HTMLInputElement;
+let port: SerialPort | undefined;
+
+const term = new Terminal();
+const encoder = new TextEncoder();
+term.on('data', data => {
+  if (port && port.writable) {
+    const writer = port.writable.getWriter();
+    writer.write(encoder.encode(data));
+    writer.releaseLock();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
-  const connectButton = document.getElementById("connect");
+  term.open(document.getElementById('terminal')!);
 
-  const term = new Terminal();
-  term.open(document.getElementById("terminal"));
-
-  connectButton.addEventListener("click", async () => {
-    const port = await navigator.serial.requestPort({});
-    await port.open({ baudrate: 9600 });
-
-    const encoder = new TextEncoder();
-    term.on('data', data => {
-      const writer = port.writable.getWriter();
-      writer.write(encoder.encode(data));
-      writer.releaseLock();
-    });
-
-    const reader = port.readable.getReader();
-    const decoder = new TextDecoder();
-    while (true) {
-      const { value, done } = await reader.read();
-      term.writeUtf8(value);
-      if (done) {
-        break;
-      }
+  connectButton = <HTMLButtonElement>document.getElementById('connect');
+  connectButton.addEventListener('click', () => {
+    if (port) {
+      port.close();
+    } else {
+      requestNewPort();
     }
   });
+
+  baudRateSelector = <HTMLSelectElement>document.getElementById('baudrate');
+  baudRateSelector.addEventListener('input', () => {
+    if (baudRateSelector.value == 'custom') {
+      customBaudRateInput.hidden = false;
+    } else {
+      customBaudRateInput.hidden = true;
+    }
+  });
+
+  customBaudRateInput =
+      <HTMLInputElement>document.getElementById('custom_baudrate');
+  dataBitsSelector = <HTMLSelectElement>document.getElementById('databits');
+  paritySelector = <HTMLSelectElement>document.getElementById('parity');
+  stopBitsSelector = <HTMLSelectElement>document.getElementById('stopbits');
+  flowControlCheckbox = <HTMLInputElement>document.getElementById('rtscts');
 });
+
+async function requestNewPort() {
+  port = await navigator.serial.requestPort({});
+  connectToPort();
+}
+
+async function connectToPort() {
+  if (!port) {
+    return;
+  }
+
+  const options = {
+    baudrate: getSelectedBaudRate(),
+    databits: Number.parseInt(dataBitsSelector.value),
+    parity: <ParityType>paritySelector.value,
+    stopbits: Number.parseInt(stopBitsSelector.value),
+    rtscts: flowControlCheckbox.checked
+  };
+  console.log(options);
+  await port.open(options);
+
+  connectButton.textContent = 'Disconnect';
+  baudRateSelector.disabled = true;
+  customBaudRateInput.disabled = true;
+  dataBitsSelector.disabled = true;
+  paritySelector.disabled = true;
+  stopBitsSelector.disabled = true;
+  flowControlCheckbox.disabled = true;
+  term.writeln('<CONNECTED>');
+
+  while (port.readable) {
+    try {
+      const reader = port.readable.getReader();
+      while (true) {
+        const { value, done } = await reader.read();
+        term.writeUtf8(value);
+        if (done) {
+          break;
+        }
+      }
+    } catch (e) {
+      term.writeln(`<ERROR: ${e.message}>`);
+    }
+  }
+
+  term.writeln('<DISCONNECTED>');
+  connectButton.textContent = 'Connect';
+  baudRateSelector.disabled = false;
+  customBaudRateInput.disabled = false;
+  dataBitsSelector.disabled = false;
+  paritySelector.disabled = false;
+  stopBitsSelector.disabled = false;
+  flowControlCheckbox.disabled = false;
+  port = undefined;
+}
+
+function getSelectedBaudRate() {
+  if (baudRateSelector.value == 'custom') {
+    return Number.parseInt(customBaudRateInput.value);
+  }
+  return Number.parseInt(baudRateSelector.value);
+}
