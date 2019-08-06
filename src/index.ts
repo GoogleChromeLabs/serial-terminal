@@ -36,14 +36,19 @@ let dataBitsSelector: HTMLSelectElement;
 let paritySelector: HTMLSelectElement;
 let stopBitsSelector: HTMLSelectElement;
 let flowControlCheckbox: HTMLInputElement;
+let echoCheckbox: HTMLInputElement;
 let port: SerialPort | undefined;
 
 const term = new Terminal();
 const encoder = new TextEncoder();
 term.on('data', data => {
+  const bytes = encoder.encode(data);
+  if (echoCheckbox.checked) {
+    term.writeUtf8(bytes);
+  }
   if (port && port.writable) {
     const writer = port.writable.getWriter();
-    writer.write(encoder.encode(data));
+    writer.write(bytes);
     writer.releaseLock();
   }
 });
@@ -75,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
   paritySelector = <HTMLSelectElement>document.getElementById('parity');
   stopBitsSelector = <HTMLSelectElement>document.getElementById('stopbits');
   flowControlCheckbox = <HTMLInputElement>document.getElementById('rtscts');
+  echoCheckbox = <HTMLInputElement>document.getElementById('echo');
 });
 
 async function requestNewPort() {
