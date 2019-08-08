@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "A demonstration of the Serial API providing an interactive serial console.",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GoogleChromeLabs/serial-terminal.git"
+  },
   "dependencies": {
     "xterm": "^3.14.5"
   },
