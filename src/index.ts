@@ -38,6 +38,7 @@ let stopBitsSelector: HTMLSelectElement;
 let flowControlCheckbox: HTMLInputElement;
 let echoCheckbox: HTMLInputElement;
 let port: SerialPort | undefined;
+let reader: ReadableStreamDefaultReader | undefined;
 
 const term = new Terminal();
 const encoder = new TextEncoder();
@@ -57,9 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
   term.open(document.getElementById('terminal')!);
 
   connectButton = <HTMLButtonElement>document.getElementById('connect');
-  connectButton.addEventListener('click', () => {
+  connectButton.addEventListener('click', async () => {
     if (port) {
-      port.close();
+      if (reader)
+        reader.cancel();
+      await port.close();
     } else {
       requestNewPort();
     }
@@ -114,7 +117,7 @@ async function connectToPort() {
 
   while (port.readable) {
     try {
-      const reader = port.readable.getReader();
+      reader = port.readable.getReader();
       while (true) {
         const { value, done } = await reader.read();
         term.writeUtf8(value);
@@ -122,6 +125,7 @@ async function connectToPort() {
           break;
         }
       }
+      reader = undefined;
     } catch (e) {
       term.writeln(`<ERROR: ${e.message}>`);
     }
