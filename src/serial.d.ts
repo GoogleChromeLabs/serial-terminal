@@ -33,16 +33,33 @@ declare class SerialPort {
   close(): void;
 }
 
+interface SerialPortFilter {
+  usbVendorId?: number;
+  usbProductId?: number;
+}
+
 interface SerialPortRequestOptions {
+  filters?: SerialPortFilter[];
+}
+
+interface SerialConnectionEventInit extends EventInit {
+  port: SerialPort;
+}
+
+declare class SerialConnectionEvent extends Event {
+  constructor(type: string, eventInitDict: SerialConnectionEventInit);
+  readonly port: SerialPort;
 }
 
 declare class Serial extends EventTarget {
-  onconnect(): (this: this, ev: Event) => any;
-  ondisconnect(): (this: this, ev: Event) => any;
+  onconnect(): ((this: this, ev: SerialConnectionEvent) => any) | null;
+  ondisconnect(): ((this: this, ev: SerialConnectionEvent) => any) | null;
   getPorts(): Promise<SerialPort[]>;
   requestPort(options?: SerialPortRequestOptions): Promise<SerialPort>;
-  addEventListener(type: "connect" | "disconnect", listener: (this: this, ev: Event) => any, useCapture?: boolean): void;
+  addEventListener(type: "connect" | "disconnect", listener: (this: this, ev: SerialConnectionEvent) => any, useCapture?: boolean): void;
   addEventListener(type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener(type: "connect" | "disconnect", callback: (this: this, ev: SerialConnectionEvent) => any, useCapture?: boolean): void;
+  removeEventListener(type: string, callback: EventListenerOrEventListenerObject | null, options?: EventListenerOptions | boolean): void;
 }
 
 interface Navigator {
