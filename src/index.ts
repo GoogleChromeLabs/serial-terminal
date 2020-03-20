@@ -15,7 +15,7 @@
  */
 
 import { Terminal } from 'xterm';
-import 'xterm/dist/xterm.css';
+import 'xterm/css/xterm.css';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
@@ -42,7 +42,7 @@ let reader: ReadableStreamDefaultReader | undefined;
 
 const term = new Terminal();
 const encoder = new TextEncoder();
-term.on('data', data => {
+term.onData(data => {
   const bytes = encoder.encode(data);
   if (echoCheckbox.checked) {
     term.writeUtf8(bytes);
@@ -120,13 +120,16 @@ async function connectToPort() {
       reader = port.readable.getReader();
       while (true) {
         const { value, done } = await reader.read();
-        term.writeUtf8(value);
+        if (value) {
+          term.writeUtf8(value);
+        }
         if (done) {
           break;
         }
       }
       reader = undefined;
     } catch (e) {
+      console.error(e);
       term.writeln(`<ERROR: ${e.message}>`);
     }
   }
