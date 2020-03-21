@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-import { Terminal } from 'xterm';
+import {Terminal} from 'xterm';
 import 'xterm/css/xterm.css';
 
+/**
+ * Elements of the port selection dropdown extend HTMLOptionElement so that
+ * they can reference the SerialPort they represent.
+ */
 declare class PortOption extends HTMLOptionElement {
   port: SerialPort;
 }
@@ -24,9 +28,8 @@ declare class PortOption extends HTMLOptionElement {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration =
-          await navigator.serviceWorker.register('service-worker.js',
-                                                 { scope: '.' });
+      const registration = await navigator.serviceWorker.register(
+          'service-worker.js', {scope: '.'});
       console.log('SW registered: ', registration);
     } catch (registrationError) {
       console.log('SW registration failed: ', registrationError);
@@ -50,7 +53,7 @@ let reader: ReadableStreamDefaultReader | undefined;
 
 const term = new Terminal();
 const encoder = new TextEncoder();
-term.onData(data => {
+term.onData((data) => {
   const bytes = encoder.encode(data);
   if (echoCheckbox.checked) {
     term.writeUtf8(bytes);
@@ -62,51 +65,13 @@ term.onData(data => {
   }
 });
 
-document.addEventListener('DOMContentLoaded', async () => {
-  term.open(document.getElementById('terminal')!);
-
-  portSelector = <HTMLSelectElement>document.getElementById('ports');
-
-  connectButton = <HTMLButtonElement>document.getElementById('connect');
-  connectButton.addEventListener('click', () => {
-    if (port) {
-      disconnectFromPort();
-    } else {
-      connectToPort();
-    }
-  });
-
-  baudRateSelector = <HTMLSelectElement>document.getElementById('baudrate');
-  baudRateSelector.addEventListener('input', () => {
-    if (baudRateSelector.value == 'custom') {
-      customBaudRateInput.hidden = false;
-    } else {
-      customBaudRateInput.hidden = true;
-    }
-  });
-
-  customBaudRateInput =
-      <HTMLInputElement>document.getElementById('custom_baudrate');
-  dataBitsSelector = <HTMLSelectElement>document.getElementById('databits');
-  paritySelector = <HTMLSelectElement>document.getElementById('parity');
-  stopBitsSelector = <HTMLSelectElement>document.getElementById('stopbits');
-  flowControlCheckbox = <HTMLInputElement>document.getElementById('rtscts');
-  echoCheckbox = <HTMLInputElement>document.getElementById('echo');
-
-  const ports = await navigator.serial.getPorts();
-  ports.forEach(port => { addNewPort(port); });
-
-  navigator.serial.addEventListener('connect', event => {
-    addNewPort(event.port);
-  });
-  navigator.serial.addEventListener('disconnect', event => {
-    const portOption = findPortOption(event.port);
-    if (portOption) {
-      portOption.remove();
-    }
-  });
-});
-
+/**
+ * Returns the option corresponding to the given SerialPort if one is present
+ * in the selection dropdown.
+ *
+ * @param {SerialPort} port the port to find
+ * @return {PortOption}
+ */
 function findPortOption(port: SerialPort): PortOption | null {
   for (let i = 0; i < portSelector.options.length; ++i) {
     const option = portSelector.options[i];
@@ -122,15 +87,13 @@ function findPortOption(port: SerialPort): PortOption | null {
   return null;
 }
 
-function maybeAddNewPort(port: SerialPort): PortOption {
-  const portOption = findPortOption(port);
-  if (portOption)
-    return portOption;
-
-  return addNewPort(port);
-}
-
-function addNewPort(port:SerialPort): PortOption {
+/**
+ * Adds the given port to the selection dropdown.
+ *
+ * @param {SerialPort} port the port to add
+ * @return {PortOption}
+ */
+function addNewPort(port: SerialPort): PortOption {
   const portOption = document.createElement('option') as PortOption;
   portOption.textContent = `Port ${portCounter++}`;
   portOption.port = port;
@@ -138,6 +101,26 @@ function addNewPort(port:SerialPort): PortOption {
   return portOption;
 }
 
+/**
+ * Adds the given port to the selection dropdown, or returns the existing
+ * option if one already exists.
+ *
+ * @param {SerialPort} port the port to add
+ * @return {PortOption}
+ */
+function maybeAddNewPort(port: SerialPort): PortOption {
+  const portOption = findPortOption(port);
+  if (portOption) {
+    return portOption;
+  }
+
+  return addNewPort(port);
+}
+
+/**
+ * Sets |port| to the currently selected port. If none is selected then the
+ * user is prompted for one.
+ */
 async function getSelectedPort(): Promise<void> {
   if (portSelector.value == 'prompt') {
     try {
@@ -153,7 +136,20 @@ async function getSelectedPort(): Promise<void> {
   }
 }
 
-async function connectToPort() {
+/**
+ * @return {number} the currently selected baud rate
+ */
+function getSelectedBaudRate(): number {
+  if (baudRateSelector.value == 'custom') {
+    return Number.parseInt(customBaudRateInput.value);
+  }
+  return Number.parseInt(baudRateSelector.value);
+}
+
+/**
+ * Initiates a connection to the selected port.
+ */
+async function connectToPort(): Promise<void> {
   await getSelectedPort();
   if (!port) {
     return;
@@ -162,9 +158,9 @@ async function connectToPort() {
   const options = {
     baudrate: getSelectedBaudRate(),
     databits: Number.parseInt(dataBitsSelector.value),
-    parity: <ParityType>paritySelector.value,
+    parity: paritySelector.value as ParityType,
     stopbits: Number.parseInt(stopBitsSelector.value),
-    rtscts: flowControlCheckbox.checked
+    rtscts: flowControlCheckbox.checked,
   };
   console.log(options);
   await port.open(options);
@@ -182,8 +178,8 @@ async function connectToPort() {
   while (port.readable) {
     try {
       reader = port.readable.getReader();
-      while (true) {
-        const { value, done } = await reader.read();
+      for (;;) {
+        const {value, done} = await reader.read();
         if (value) {
           term.writeUtf8(value);
         }
@@ -210,7 +206,10 @@ async function connectToPort() {
   port = undefined;
 }
 
-async function disconnectFromPort() {
+/**
+ * Closes the currently active connection.
+ */
+async function disconnectFromPort(): Promise<void> {
   if (reader) {
     reader.cancel();
   }
@@ -220,9 +219,50 @@ async function disconnectFromPort() {
   // The rest of the disconnection happens as connectToPort() finishes.
 }
 
-function getSelectedBaudRate() {
-  if (baudRateSelector.value == 'custom') {
-    return Number.parseInt(customBaudRateInput.value);
+document.addEventListener('DOMContentLoaded', async () => {
+  const terminalElement = document.getElementById('terminal');
+  if (terminalElement) {
+    term.open(terminalElement);
   }
-  return Number.parseInt(baudRateSelector.value);
-}
+
+  portSelector = document.getElementById('ports') as HTMLSelectElement;
+
+  connectButton = document.getElementById('connect') as HTMLButtonElement;
+  connectButton.addEventListener('click', () => {
+    if (port) {
+      disconnectFromPort();
+    } else {
+      connectToPort();
+    }
+  });
+
+  baudRateSelector = document.getElementById('baudrate') as HTMLSelectElement;
+  baudRateSelector.addEventListener('input', () => {
+    if (baudRateSelector.value == 'custom') {
+      customBaudRateInput.hidden = false;
+    } else {
+      customBaudRateInput.hidden = true;
+    }
+  });
+
+  customBaudRateInput =
+      document.getElementById('custom_baudrate') as HTMLInputElement;
+  dataBitsSelector = document.getElementById('databits') as HTMLSelectElement;
+  paritySelector = document.getElementById('parity') as HTMLSelectElement;
+  stopBitsSelector = document.getElementById('stopbits') as HTMLSelectElement;
+  flowControlCheckbox = document.getElementById('rtscts') as HTMLInputElement;
+  echoCheckbox = document.getElementById('echo') as HTMLInputElement;
+
+  const ports = await navigator.serial.getPorts();
+  ports.forEach((port) => addNewPort(port));
+
+  navigator.serial.addEventListener('connect', (event) => {
+    addNewPort(event.port);
+  });
+  navigator.serial.addEventListener('disconnect', (event) => {
+    const portOption = findPortOption(event.port);
+    if (portOption) {
+      portOption.remove();
+    }
+  });
+});
