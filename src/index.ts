@@ -46,6 +46,7 @@ let paritySelector: HTMLSelectElement;
 let stopBitsSelector: HTMLSelectElement;
 let flowControlCheckbox: HTMLInputElement;
 let echoCheckbox: HTMLInputElement;
+let flushOnEnterCheckbox: HTMLInputElement;
 
 let portCounter = 1;
 let port: SerialPort | undefined;
@@ -53,16 +54,31 @@ let reader: ReadableStreamDefaultReader | undefined;
 
 const term = new Terminal();
 const encoder = new TextEncoder();
+let toFlush = '';
 term.onData((data) => {
-  const bytes = encoder.encode(data);
   if (echoCheckbox.checked) {
-    term.writeUtf8(bytes);
+    term.writeUtf8(encoder.encode(data));
   }
-  if (port && port.writable) {
-    const writer = port.writable.getWriter();
-    writer.write(bytes);
-    writer.releaseLock();
+
+  if (port?.writable == null) {
+    console.warn(`unable to find writable port`);
+    return;
   }
+
+  const writer = port.writable.getWriter();
+
+  if (flushOnEnterCheckbox.checked) {
+    toFlush += data;
+    if (data === '\r') {
+      writer.write(encoder.encode(toFlush));
+      writer.releaseLock();
+      toFlush = '';
+    }
+  } else {
+    writer.write(encoder.encode(data));
+  }
+
+  writer.releaseLock();
 });
 
 /**
@@ -252,6 +268,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   stopBitsSelector = document.getElementById('stopbits') as HTMLSelectElement;
   flowControlCheckbox = document.getElementById('rtscts') as HTMLInputElement;
   echoCheckbox = document.getElementById('echo') as HTMLInputElement;
+  flushOnEnterCheckbox =
+      document.getElementById('enter_flush') as HTMLInputElement;
 
   const ports = await navigator.serial.getPorts();
   ports.forEach((port) => addNewPort(port));
