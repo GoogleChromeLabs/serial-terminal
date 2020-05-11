@@ -53,7 +53,9 @@ let portCounter = 1;
 let port: SerialPort | undefined;
 let reader: ReadableStreamDefaultReader | undefined;
 
-const term = new Terminal();
+const term = new Terminal({
+  scrollback: 10_000,
+});
 const fitAddon = new FitAddon();
 term.loadAddon(fitAddon);
 const encoder = new TextEncoder();
