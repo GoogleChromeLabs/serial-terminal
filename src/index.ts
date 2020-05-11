@@ -15,6 +15,7 @@
  */
 
 import {Terminal} from 'xterm';
+import {FitAddon} from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
 
 /**
@@ -52,7 +53,11 @@ let portCounter = 1;
 let port: SerialPort | undefined;
 let reader: ReadableStreamDefaultReader | undefined;
 
-const term = new Terminal();
+const term = new Terminal({
+  scrollback: 10_000,
+});
+const fitAddon = new FitAddon();
+term.loadAddon(fitAddon);
 const encoder = new TextEncoder();
 let toFlush = '';
 term.onData((data) => {
@@ -131,6 +136,31 @@ function maybeAddNewPort(port: SerialPort): PortOption {
   }
 
   return addNewPort(port);
+}
+
+/**
+ * Download the terminal's contents to a file.
+ */
+function downloadTerminalContents(): void {
+  if (!term) {
+    throw new Error('no terminal instance found');
+  }
+
+  if (term.rows === 0) {
+    console.log('No output yet');
+    return;
+  }
+
+  term.selectAll();
+  const contents = term.getSelection();
+  term.clearSelection();
+  const linkContent = URL.createObjectURL(
+      new Blob([new TextEncoder().encode(contents).buffer],
+          {type: 'text/plain'}));
+  const fauxLink = document.createElement('a');
+  fauxLink.download = `terminal_content_${new Date().getTime()}.txt`;
+  fauxLink.href = linkContent;
+  fauxLink.click();
 }
 
 /**
@@ -239,8 +269,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const terminalElement = document.getElementById('terminal');
   if (terminalElement) {
     term.open(terminalElement);
+    fitAddon.fit();
   }
 
+  const download = document.getElementById('download') as HTMLSelectElement;
+  download.addEventListener('click', downloadTerminalContents);
   portSelector = document.getElementById('ports') as HTMLSelectElement;
 
   connectButton = document.getElementById('connect') as HTMLButtonElement;

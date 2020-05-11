@@ -4,9 +4,25 @@
   <meta http-equiv="origin-trial" content="AmHmdMFkK7WyuzvnTW4gykows7NfSYubblWVjTizP1y14Sa3+15zu5UTfsQVZnoHZShGdNseT1AjUBsyIdcVUA0AAABaeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZWNocm9tZWxhYnMuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJTZXJpYWwiLCJleHBpcnkiOjE1ODk5MzMwNjl9">
   <!-- Token for http://localhost:8080/ -->
   <meta http-equiv="origin-trial" content="AuYxi+VvKWJIq3A08xjZC7yUG8jmao3K44fnntHSgbNUdczYygmUsAe4OA1dbKaB6nVh0OL9j+h0YIadgWmqgAAAAABJeyJvcmlnaW4iOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJmZWF0dXJlIjoiU2VyaWFsIiwiZXhwaXJ5IjoxNTg5OTMyMzk1fQ==">
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    #terminal {
+      height: 90vh;
+    }
+    .options {
+      height: 10vh;
+      padding: 15px;
+    }
+  </style>
 </head>
 <body>
-<p>
+<div class="options">
   <label for="ports">Port:</label>
   <select id="ports">
     <option value="prompt">Add a port...</option>
@@ -23,6 +39,7 @@
     <option value="115200" selected>115200</option>
     <option value="custom">Custom</option>
   </select>
+  </br>
   <input id="custom_baudrate" type="number" min="1" placeholder="Enter baudrate..." hidden>
   <label for="databits">Data bits:</label>
   <select id="databits">
@@ -46,7 +63,8 @@
   <label for="echo">Local echo</label>
   <input id="enter_flush" type="checkbox">
   <label for="enter_flush">Flush on enter</label>
-</p>
+  <button id="download">Download output</button>
+</div>
 <div id="terminal"></div>
 </body>
 </html>
