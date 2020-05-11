@@ -15,6 +15,7 @@
  */
 
 import {Terminal} from 'xterm';
+import {FitAddon} from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
 
 /**
@@ -53,6 +54,8 @@ let port: SerialPort | undefined;
 let reader: ReadableStreamDefaultReader | undefined;
 
 const term = new Terminal();
+const fitAddon = new FitAddon();
+term.loadAddon(fitAddon);
 const encoder = new TextEncoder();
 let toFlush = '';
 term.onData((data) => {
@@ -239,6 +242,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const terminalElement = document.getElementById('terminal');
   if (terminalElement) {
     term.open(terminalElement);
+    fitAddon.fit();
   }
 
   portSelector = document.getElementById('ports') as HTMLSelectElement;
