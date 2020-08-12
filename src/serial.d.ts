@@ -17,14 +17,17 @@
 /** @see https://wicg.github.io/serial/#paritytype-enum */
 type ParityType = 'none' | 'even' | 'odd';
 
+/** @see https://wicg.github.io/serial/#flowcontroltype-enum */
+type FlowControlType = 'none' | 'hardware';
+
 /** @see https://wicg.github.io/serial/#serialoptions-dictionary */
 interface SerialOptions {
-  baudrate: number;
-  databits?: number;
-  stopbits?: number;
+  baudRate: number;
+  dataBits?: number;
+  stopBits?: number;
   parity?: ParityType;
-  buffersize?: number;
-  rtscts?: boolean;
+  bufferSize?: number;
+  flowControl?: FlowControlType;
 }
 
 /** @see https://wicg.github.io/serial/#serialport-interface */

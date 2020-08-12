@@ -202,9 +202,15 @@ async function connectToPort(): Promise<void> {
   }
 
   const options = {
+    baudRate: getSelectedBaudRate(),
+    dataBits: Number.parseInt(dataBitsSelector.value),
+    parity: paritySelector.value as ParityType,
+    stopBits: Number.parseInt(stopBitsSelector.value),
+    flowControl: flowControlCheckbox.checked ? <const> 'hardware' : <const> 'none',
+
+    // Prior to Chrome 86 these names were used.
     baudrate: getSelectedBaudRate(),
     databits: Number.parseInt(dataBitsSelector.value),
-    parity: paritySelector.value as ParityType,
     stopbits: Number.parseInt(stopBitsSelector.value),
     rtscts: flowControlCheckbox.checked,
   };
