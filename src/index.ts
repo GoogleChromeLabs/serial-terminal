@@ -52,6 +52,7 @@ let flushOnEnterCheckbox: HTMLInputElement;
 let portCounter = 1;
 let port: SerialPort | undefined;
 let reader: ReadableStreamDefaultReader | undefined;
+let closing = false;
 
 const term = new Terminal({
   scrollback: 10_000,
@@ -228,7 +229,7 @@ async function connectToPort(): Promise<void> {
   flowControlCheckbox.disabled = true;
   term.writeln('<CONNECTED>');
 
-  while (port.readable) {
+  while (port.readable && !closing) {
     try {
       reader = port.readable.getReader();
       for (;;) {
@@ -263,12 +264,19 @@ async function connectToPort(): Promise<void> {
  * Closes the currently active connection.
  */
 async function disconnectFromPort(): Promise<void> {
+  closing = true;
   if (reader) {
-    reader.cancel();
+    await reader.cancel();
   }
   if (port) {
-    await port.close();
+    try {
+      await port.close();
+    } catch (e) {
+      console.error(e);
+      term.writeln(`<ERROR: ${e.message}>`);
+    }
   }
+  closing = false;
   // The rest of the disconnection happens as connectToPort() finishes.
 }
 
