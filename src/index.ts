@@ -52,7 +52,6 @@ let flushOnEnterCheckbox: HTMLInputElement;
 let portCounter = 1;
 let port: SerialPort | undefined;
 let reader: ReadableStreamDefaultReader | undefined;
-let closing = false;
 
 const term = new Terminal({
   scrollback: 10_000,
@@ -194,6 +193,22 @@ function getSelectedBaudRate(): number {
 }
 
 /**
+ * Resets the UI back to the disconnected state.
+ */
+function markDisconnected(): void {
+  term.writeln('<DISCONNECTED>');
+  portSelector.disabled = false;
+  connectButton.textContent = 'Connect';
+  baudRateSelector.disabled = false;
+  customBaudRateInput.disabled = false;
+  dataBitsSelector.disabled = false;
+  paritySelector.disabled = false;
+  stopBitsSelector.disabled = false;
+  flowControlCheckbox.disabled = false;
+  port = undefined;
+}
+
+/**
  * Initiates a connection to the selected port.
  */
 async function connectToPort(): Promise<void> {
@@ -229,7 +244,7 @@ async function connectToPort(): Promise<void> {
   flowControlCheckbox.disabled = true;
   term.writeln('<CONNECTED>');
 
-  while (port.readable && !closing) {
+  while (port && port.readable) {
     try {
       reader = port.readable.getReader();
       for (;;) {
@@ -241,6 +256,7 @@ async function connectToPort(): Promise<void> {
           break;
         }
       }
+      reader.releaseLock();
       reader = undefined;
     } catch (e) {
       console.error(e);
@@ -248,26 +264,6 @@ async function connectToPort(): Promise<void> {
     }
   }
 
-  term.writeln('<DISCONNECTED>');
-  portSelector.disabled = false;
-  connectButton.textContent = 'Connect';
-  baudRateSelector.disabled = false;
-  customBaudRateInput.disabled = false;
-  dataBitsSelector.disabled = false;
-  paritySelector.disabled = false;
-  stopBitsSelector.disabled = false;
-  flowControlCheckbox.disabled = false;
-  port = undefined;
-}
-
-/**
- * Closes the currently active connection.
- */
-async function disconnectFromPort(): Promise<void> {
-  closing = true;
-  if (reader) {
-    await reader.cancel();
-  }
   if (port) {
     try {
       await port.close();
@@ -275,9 +271,34 @@ async function disconnectFromPort(): Promise<void> {
       console.error(e);
       term.writeln(`<ERROR: ${e.message}>`);
     }
+
+    markDisconnected();
   }
-  closing = false;
-  // The rest of the disconnection happens as connectToPort() finishes.
+}
+
+/**
+ * Closes the currently active connection.
+ */
+async function disconnectFromPort(): Promise<void> {
+  // Move |port| into a local variable so that connectToPort() doesn't try to
+  // close it on exit.
+  const localPort = port;
+  port = undefined;
+
+  if (reader) {
+    await reader.cancel();
+  }
+
+  if (localPort) {
+    try {
+      await localPort.close();
+    } catch (e) {
+      console.error(e);
+      term.writeln(`<ERROR: ${e.message}>`);
+    }
+  }
+
+  markDisconnected();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
