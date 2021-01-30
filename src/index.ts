@@ -344,10 +344,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   ports.forEach((port) => addNewPort(port));
 
   navigator.serial.addEventListener('connect', (event) => {
-    addNewPort(event.port || event.target);
+    addNewPort((event as any).port || event.target as SerialPort);
   });
   navigator.serial.addEventListener('disconnect', (event) => {
-    const portOption = findPortOption(event.port || event.target);
+    const portOption = findPortOption(
+        (event as any).port || event.target as SerialPort);
     if (portOption) {
       portOption.remove();
     }
