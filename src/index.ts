@@ -17,13 +17,16 @@
 import {Terminal} from 'xterm';
 import {FitAddon} from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
+import {
+  serial as polyfill, SerialPort as SerialPortPolyfill,
+} from 'web-serial-polyfill';
 
 /**
  * Elements of the port selection dropdown extend HTMLOptionElement so that
  * they can reference the SerialPort they represent.
  */
 declare class PortOption extends HTMLOptionElement {
-  port: SerialPort;
+  port: SerialPort | SerialPortPolyfill;
 }
 
 if ('serviceWorker' in navigator) {
@@ -50,8 +53,11 @@ let echoCheckbox: HTMLInputElement;
 let flushOnEnterCheckbox: HTMLInputElement;
 
 let portCounter = 1;
-let port: SerialPort | undefined;
+let port: SerialPort | SerialPortPolyfill | undefined;
 let reader: ReadableStreamDefaultReader | undefined;
+
+const urlParams = new URLSearchParams(window.location.search);
+const usePolyfill = urlParams.has('polyfill');
 
 const term = new Terminal({
   scrollback: 10_000,
@@ -93,7 +99,8 @@ term.onData((data) => {
  * @param {SerialPort} port the port to find
  * @return {PortOption}
  */
-function findPortOption(port: SerialPort): PortOption | null {
+function findPortOption(port: SerialPort | SerialPortPolyfill):
+    PortOption | null {
   for (let i = 0; i < portSelector.options.length; ++i) {
     const option = portSelector.options[i];
     if (option.value === 'prompt') {
@@ -114,7 +121,7 @@ function findPortOption(port: SerialPort): PortOption | null {
  * @param {SerialPort} port the port to add
  * @return {PortOption}
  */
-function addNewPort(port: SerialPort): PortOption {
+function addNewPort(port: SerialPort | SerialPortPolyfill): PortOption {
   const portOption = document.createElement('option') as PortOption;
   portOption.textContent = `Port ${portCounter++}`;
   portOption.port = port;
@@ -129,7 +136,7 @@ function addNewPort(port: SerialPort): PortOption {
  * @param {SerialPort} port the port to add
  * @return {PortOption}
  */
-function maybeAddNewPort(port: SerialPort): PortOption {
+function maybeAddNewPort(port: SerialPort | SerialPortPolyfill): PortOption {
   const portOption = findPortOption(port);
   if (portOption) {
     return portOption;
@@ -170,7 +177,8 @@ function downloadTerminalContents(): void {
 async function getSelectedPort(): Promise<void> {
   if (portSelector.value == 'prompt') {
     try {
-      port = await navigator.serial.requestPort({});
+      const serial = usePolyfill ? polyfill : navigator.serial;
+      port = await serial.requestPort({});
     } catch (e) {
       return;
     }
@@ -340,17 +348,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   flushOnEnterCheckbox =
       document.getElementById('enter_flush') as HTMLInputElement;
 
-  const ports = await navigator.serial.getPorts();
+  const serial = usePolyfill ? polyfill : navigator.serial;
+  const ports: (SerialPort | SerialPortPolyfill)[] = await serial.getPorts();
   ports.forEach((port) => addNewPort(port));
 
-  navigator.serial.addEventListener('connect', (event) => {
-    addNewPort((event as any).port || event.target as SerialPort);
-  });
-  navigator.serial.addEventListener('disconnect', (event) => {
-    const portOption = findPortOption(
-        (event as any).port || event.target as SerialPort);
-    if (portOption) {
-      portOption.remove();
-    }
-  });
+  // These events are not supported by the polyfill.
+  // https://github.com/google/web-serial-polyfill/issues/20
+  if (!usePolyfill) {
+    navigator.serial.addEventListener('connect', (event) => {
+      addNewPort((event as any).port || event.target as SerialPort);
+    });
+    navigator.serial.addEventListener('disconnect', (event) => {
+      const portOption = findPortOption(
+          (event as any).port || event.target as SerialPort);
+      if (portOption) {
+        portOption.remove();
+      }
+    });
+  }
 });
