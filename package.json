@@ -32,7 +32,7 @@
     "workbox-webpack-plugin": "^6.1.2"
   },
   "scripts": {
-    "start": "webpack-dev-server --config webpack.dev.js",
+    "start": "webpack serve --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js",
     "lint": "eslint src/*.ts",
     "publish": "node publish.js"
