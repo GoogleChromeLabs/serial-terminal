@@ -5,10 +5,7 @@ communicate with a locally connected serial device through an interactive
 terminal. This provides a demonstration of the [Serial
 API](https://wicg.github.io/serial/).
 
-This API is currently available behind a flag in Chrome 77 and later. Enable
-`chrome://flags/#enable-experimental-web-platform-features` to get started. The
-API design is still in flux so the latest Chrome dev-channel release is
-recommended.
+This API is available starting with Chrome 89, Edge 89, and Opera 76.
 
 ## Privacy
 
