@@ -348,6 +348,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   flushOnEnterCheckbox =
       document.getElementById('enter_flush') as HTMLInputElement;
 
+  const convertEolCheckbox =
+      document.getElementById('convert_eol') as HTMLInputElement;
+  const convertEolCheckboxHandler = () => {
+    term.setOption('convertEol', convertEolCheckbox.checked);
+  };
+  convertEolCheckbox.addEventListener('change', convertEolCheckboxHandler);
+  convertEolCheckboxHandler();
+
   const serial = usePolyfill ? polyfill : navigator.serial;
   const ports: (SerialPort | SerialPortPolyfill)[] = await serial.getPorts();
   ports.forEach((port) => addNewPort(port));
