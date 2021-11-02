@@ -207,6 +207,7 @@ function markDisconnected(): void {
   term.writeln('<DISCONNECTED>');
   portSelector.disabled = false;
   connectButton.textContent = 'Connect';
+  connectButton.disabled = false;
   baudRateSelector.disabled = false;
   customBaudRateInput.disabled = false;
   dataBitsSelector.disabled = false;
@@ -240,17 +241,28 @@ async function connectToPort(): Promise<void> {
     rtscts: flowControlCheckbox.checked,
   };
   console.log(options);
-  await port.open(options);
 
   portSelector.disabled = true;
-  connectButton.textContent = 'Disconnect';
+  connectButton.textContent = 'Connecting...';
+  connectButton.disabled = true;
   baudRateSelector.disabled = true;
   customBaudRateInput.disabled = true;
   dataBitsSelector.disabled = true;
   paritySelector.disabled = true;
   stopBitsSelector.disabled = true;
   flowControlCheckbox.disabled = true;
-  term.writeln('<CONNECTED>');
+
+  try {
+    await port.open(options);
+    term.writeln('<CONNECTED>');
+    connectButton.textContent = 'Disconnect';
+    connectButton.disabled = false;
+  } catch (e) {
+    console.error(e);
+    term.writeln(`<ERROR: ${e.message}>`);
+    markDisconnected();
+    return;
+  }
 
   while (port && port.readable) {
     try {
