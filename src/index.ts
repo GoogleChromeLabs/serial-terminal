@@ -376,11 +376,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // https://github.com/google/web-serial-polyfill/issues/20
   if (!usePolyfill) {
     navigator.serial.addEventListener('connect', (event) => {
-      addNewPort((event as any).port || event.target as SerialPort);
+      addNewPort(event.target as SerialPort);
     });
     navigator.serial.addEventListener('disconnect', (event) => {
-      const portOption = findPortOption(
-          (event as any).port || event.target as SerialPort);
+      const portOption = findPortOption(event.target as SerialPort);
       if (portOption) {
         portOption.remove();
       }
