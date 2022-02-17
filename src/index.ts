@@ -68,7 +68,7 @@ const encoder = new TextEncoder();
 let toFlush = '';
 term.onData((data) => {
   if (echoCheckbox.checked) {
-    term.writeUtf8(encoder.encode(data));
+    term.write(data);
   }
 
   if (port?.writable == null) {
@@ -270,7 +270,9 @@ async function connectToPort(): Promise<void> {
       for (;;) {
         const {value, done} = await reader.read();
         if (value) {
-          term.writeUtf8(value);
+          await new Promise<void>((resolve) => {
+            term.write(value, resolve);
+          });
         }
         if (done) {
           break;
