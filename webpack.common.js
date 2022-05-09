@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
+const WebpackPwaManifest = require('webpack-pwa-manifest');
 
 module.exports = {
   entry: './src/index.ts',
@@ -22,7 +23,11 @@ module.exports = {
           'style-loader',
           'css-loader'
         ]
-      }
+      },
+      {
+        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        type: 'asset/resource',
+      },
     ],
   },
   plugins: [
@@ -35,6 +40,33 @@ module.exports = {
       // and not allow any straggling "old" SWs to hang around
       clientsClaim: true,
       skipWaiting: true
+    }),
+    new WebpackPwaManifest({
+      short_name: "Serial Terminal",
+      name: "Serial Terminal",
+      icons: [
+        {
+          src: path.resolve("src/images/icons-1024.png"),
+          type: "image/png",
+          sizes: "1024x1024",
+          purpose: "any maskable"
+        },
+        {
+          src: path.resolve("src/images/icons-192.png"),
+          type: "image/png",
+          sizes: "192x192",
+          purpose: "any maskable"
+        },
+        {
+          src: path.resolve("src/images/icons-512.png"),
+          type: "image/png",
+          sizes: "512x512",
+          purpose: "any maskable"
+        }
+      ],
+      "start_url": "./?source=pwa",
+      "display": "standalone",
+      "scope": "./"
     })
   ],
   resolve: {
@@ -42,7 +74,8 @@ module.exports = {
   },
   output: {
     filename: '[name].[contenthash].js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'dist'),
+    publicPath: '.'
   },
   optimization: {
     runtimeChunk: 'single',
