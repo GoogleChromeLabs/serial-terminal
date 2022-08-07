@@ -282,7 +282,7 @@ async function connectToPort(): Promise<void> {
               buffer = new ArrayBuffer(bufferSize);
             }
             const {value, done} =
-                await reader.read(new Uint8Array(buffer, bufferSize));
+                await reader.read(new Uint8Array(buffer, 0, bufferSize));
             buffer = value?.buffer;
             return {value, done};
           } else {
@@ -299,11 +299,16 @@ async function connectToPort(): Promise<void> {
           break;
         }
       }
-      reader.releaseLock();
-      reader = undefined;
     } catch (e) {
       console.error(e);
-      term.writeln(`<ERROR: ${e.message}>`);
+      await new Promise<void>((resolve) => {
+        term.writeln(`<ERROR: ${e.message}>`, resolve);
+      });
+    } finally {
+      if (reader) {
+        reader.releaseLock();
+        reader = undefined;
+      }
     }
   }
 
