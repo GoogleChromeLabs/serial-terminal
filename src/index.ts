@@ -54,10 +54,11 @@ let flushOnEnterCheckbox: HTMLInputElement;
 
 let portCounter = 1;
 let port: SerialPort | SerialPortPolyfill | undefined;
-let reader: ReadableStreamDefaultReader | undefined;
+let reader: ReadableStreamDefaultReader | ReadableStreamBYOBReader | undefined;
 
 const urlParams = new URLSearchParams(window.location.search);
 const usePolyfill = urlParams.has('polyfill');
+const bufferSize = 8 * 1024; // 8kB
 
 const term = new Terminal({
   scrollback: 10_000,
@@ -233,6 +234,7 @@ async function connectToPort(): Promise<void> {
     stopBits: Number.parseInt(stopBitsSelector.value),
     flowControl:
         flowControlCheckbox.checked ? <const> 'hardware' : <const> 'none',
+    bufferSize,
 
     // Prior to Chrome 86 these names were used.
     baudrate: getSelectedBaudRate(),
@@ -266,9 +268,28 @@ async function connectToPort(): Promise<void> {
 
   while (port && port.readable) {
     try {
-      reader = port.readable.getReader();
+      try {
+        reader = port.readable.getReader({mode: 'byob'});
+      } catch {
+        reader = port.readable.getReader();
+      }
+
+      let buffer = null;
       for (;;) {
-        const {value, done} = await reader.read();
+        const {value, done} = await (async () => {
+          if (reader instanceof ReadableStreamBYOBReader) {
+            if (!buffer) {
+              buffer = new ArrayBuffer(bufferSize);
+            }
+            const {value, done} =
+                await reader.read(new Uint8Array(buffer, 0, bufferSize));
+            buffer = value?.buffer;
+            return {value, done};
+          } else {
+            return await reader.read();
+          }
+        })();
+
         if (value) {
           await new Promise<void>((resolve) => {
             term.write(value, resolve);
@@ -278,11 +299,16 @@ async function connectToPort(): Promise<void> {
           break;
         }
       }
-      reader.releaseLock();
-      reader = undefined;
     } catch (e) {
       console.error(e);
-      term.writeln(`<ERROR: ${e.message}>`);
+      await new Promise<void>((resolve) => {
+        term.writeln(`<ERROR: ${e.message}>`, resolve);
+      });
+    } finally {
+      if (reader) {
+        reader.releaseLock();
+        reader = undefined;
+      }
     }
   }
 
