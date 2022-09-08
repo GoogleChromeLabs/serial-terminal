@@ -51,6 +51,7 @@ let stopBitsSelector: HTMLSelectElement;
 let flowControlCheckbox: HTMLInputElement;
 let echoCheckbox: HTMLInputElement;
 let flushOnEnterCheckbox: HTMLInputElement;
+let autoReconnect: HTMLInputElement;
 
 let portCounter = 1;
 let port: SerialPort | SerialPortPolyfill | undefined;
@@ -385,6 +386,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   stopBitsSelector = document.getElementById('stopbits') as HTMLSelectElement;
   flowControlCheckbox = document.getElementById('rtscts') as HTMLInputElement;
   echoCheckbox = document.getElementById('echo') as HTMLInputElement;
+  autoReconnect = document.getElementById('auto') as HTMLInputElement;
   flushOnEnterCheckbox =
       document.getElementById('enter_flush') as HTMLInputElement;
 
@@ -404,7 +406,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // https://github.com/google/web-serial-polyfill/issues/20
   if (!usePolyfill) {
     navigator.serial.addEventListener('connect', (event) => {
-      addNewPort(event.target as SerialPort);
+      if (autoReconnect.checked) {
+        port = event.target as SerialPort;
+        connectToPort();
+      } else {
+        addNewPort(event.target as SerialPort);
+      }
     });
     navigator.serial.addEventListener('disconnect', (event) => {
       const portOption = findPortOption(event.target as SerialPort);
