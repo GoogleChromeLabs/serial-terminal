@@ -42,7 +42,6 @@
     <option value="921600">921600</option>
     <option value="custom">Custom</option>
   </select>
-  </br>
   <input id="custom_baudrate" type="number" min="1" placeholder="Enter baudrate..." hidden>
   <label for="databits">Data bits:</label>
   <select id="databits">
@@ -63,11 +62,14 @@
   <input id="rtscts" type="checkbox">
   <label for="rtscts">Hardware flow control</label>
   <input id="echo" type="checkbox">
+  <br>
   <label for="echo">Local echo</label>
   <input id="enter_flush" type="checkbox">
   <label for="enter_flush">Flush on enter</label>
   <input id="convert_eol" type="checkbox">
   <label for="convert_eol">Convert EOL</label>
+  <input id="autoconnect" type="checkbox">
+  <label for="autoconnect">Automatically connect</label>
   <button id="download">Download output</button>
 </div>
 <div id="terminal"></div>
