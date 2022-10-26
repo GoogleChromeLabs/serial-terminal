@@ -173,6 +173,22 @@ function downloadTerminalContents(): void {
 }
 
 /**
+ * Clear the terminal's contents.
+ */
+function clearTerminalContents(): void {
+  if (!term) {
+    throw new Error('no terminal instance found');
+  }
+
+  if (term.rows === 0) {
+    console.log('No output yet');
+    return;
+  }
+
+  term.clear();
+}
+
+/**
  * Sets |port| to the currently selected port. If none is selected then the
  * user is prompted for one.
  */
@@ -357,8 +373,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     fitAddon.fit();
   }
 
-  const download = document.getElementById('download') as HTMLSelectElement;
-  download.addEventListener('click', downloadTerminalContents);
+  const downloadOutput =
+    document.getElementById('download') as HTMLSelectElement;
+  downloadOutput.addEventListener('click', downloadTerminalContents);
+
+  const clearOutput = document.getElementById('clear') as HTMLSelectElement;
+  clearOutput.addEventListener('click', clearTerminalContents);
+
   portSelector = document.getElementById('ports') as HTMLSelectElement;
 
   connectButton = document.getElementById('connect') as HTMLButtonElement;
