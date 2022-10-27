@@ -371,6 +371,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (terminalElement) {
     term.open(terminalElement);
     fitAddon.fit();
+
+    window.addEventListener('resize', () => {
+      fitAddon.fit();
+    });
   }
 
   const downloadOutput =
