@@ -42,31 +42,31 @@ module.exports = {
       skipWaiting: true
     }),
     new WebpackPwaManifest({
-      short_name: "Serial Terminal",
-      name: "Serial Terminal",
+      short_name: 'Serial Terminal',
+      name: 'Serial Terminal',
       icons: [
         {
-          src: path.resolve("src/images/icons-1024.png"),
-          type: "image/png",
-          sizes: "1024x1024",
-          purpose: "any maskable"
+          src: path.resolve('src/images/icons-1024.png'),
+          type: 'image/png',
+          sizes: '1024x1024',
+          purpose: 'any maskable'
         },
         {
-          src: path.resolve("src/images/icons-192.png"),
-          type: "image/png",
-          sizes: "192x192",
-          purpose: "any maskable"
+          src: path.resolve('src/images/icons-192.png'),
+          type: 'image/png',
+          sizes: '192x192',
+          purpose: 'any maskable'
         },
         {
-          src: path.resolve("src/images/icons-512.png"),
-          type: "image/png",
-          sizes: "512x512",
-          purpose: "any maskable"
+          src: path.resolve('src/images/icons-512.png'),
+          type: 'image/png',
+          sizes: '512x512',
+          purpose: 'any maskable'
         }
       ],
-      "start_url": "./?source=pwa",
-      "display": "standalone",
-      "scope": "./"
+      start_url: './?source=pwa',
+      display: 'standalone',
+      scope: './'
     })
   ],
   resolve: {
