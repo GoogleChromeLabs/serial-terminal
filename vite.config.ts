@@ -3,6 +3,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import webmanifest from './src/manifest.json';
 
 export default {
+  base: './',
   plugins: [
     eslint(),
     VitePWA({
