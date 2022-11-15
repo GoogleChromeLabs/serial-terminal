@@ -1,13 +1,19 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "lib": ["dom", "es2015"],
-    "outDir": "./dist/",
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "Node",
+    "strict": true,
     "sourceMap": true,
-    "noImplicitAny": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "strictNullChecks": true,
-    "target": "es5"
+    "skipLibCheck": true
   }
 }

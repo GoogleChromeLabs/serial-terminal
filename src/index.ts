@@ -29,18 +29,6 @@ declare class PortOption extends HTMLOptionElement {
   port: SerialPort | SerialPortPolyfill;
 }
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const registration = await navigator.serviceWorker.register(
-          'service-worker.js', {scope: '.'});
-      console.log('SW registered: ', registration);
-    } catch (registrationError) {
-      console.log('SW registration failed: ', registrationError);
-    }
-  });
-}
-
 let portSelector: HTMLSelectElement;
 let connectButton: HTMLButtonElement;
 let baudRateSelector: HTMLSelectElement;
@@ -278,7 +266,9 @@ async function connectToPort(): Promise<void> {
     connectButton.disabled = false;
   } catch (e) {
     console.error(e);
-    term.writeln(`<ERROR: ${e.message}>`);
+    if (e instanceof Error) {
+      term.writeln(`<ERROR: ${e.message}>`);
+    }
     markDisconnected();
     return;
   }
@@ -319,7 +309,9 @@ async function connectToPort(): Promise<void> {
     } catch (e) {
       console.error(e);
       await new Promise<void>((resolve) => {
-        term.writeln(`<ERROR: ${e.message}>`, resolve);
+        if (e instanceof Error) {
+          term.writeln(`<ERROR: ${e.message}>`, resolve);
+        }
       });
     } finally {
       if (reader) {
@@ -334,7 +326,9 @@ async function connectToPort(): Promise<void> {
       await port.close();
     } catch (e) {
       console.error(e);
-      term.writeln(`<ERROR: ${e.message}>`);
+      if (e instanceof Error) {
+        term.writeln(`<ERROR: ${e.message}>`);
+      }
     }
 
     markDisconnected();
@@ -359,7 +353,9 @@ async function disconnectFromPort(): Promise<void> {
       await localPort.close();
     } catch (e) {
       console.error(e);
-      term.writeln(`<ERROR: ${e.message}>`);
+      if (e instanceof Error) {
+        term.writeln(`<ERROR: ${e.message}>`);
+      }
     }
   }
 
