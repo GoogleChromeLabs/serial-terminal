@@ -8,10 +8,10 @@
     "url": "https://github.com/GoogleChromeLabs/serial-terminal.git"
   },
   "dependencies": {
-    "@types/w3c-web-serial": "^1.0.2",
-    "web-serial-polyfill": "^1.0.13",
-    "xterm": "^4.17.0",
-    "xterm-addon-fit": "^0.5.0"
+    "@types/w3c-web-serial": "^1.0.3",
+    "web-serial-polyfill": "^1.0.14",
+    "xterm": "^5.0.0",
+    "xterm-addon-fit": "^0.6.0"
   },
   "devDependencies": {
     "@types/web": "0.0.71",
