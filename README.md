@@ -15,7 +15,7 @@ locally.
 
 ## Building
 
-This project is written in TypeScript and uses npm and Webpack to manage
+This project is written in TypeScript and uses npm and Vite to manage
 dependencies and automate the build process. To get started clone the
 repository and install dependencies by running,
 
@@ -32,5 +32,5 @@ npm run build
 To start a local development server run,
 
 ```sh
-npm start
+npm run dev
 ```
