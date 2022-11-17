@@ -367,6 +367,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (terminalElement) {
     term.open(terminalElement);
     fitAddon.fit();
+
+    window.addEventListener('resize', () => {
+      fitAddon.fit();
+    });
   }
 
   const downloadOutput =
@@ -411,7 +415,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const convertEolCheckbox =
       document.getElementById('convert_eol') as HTMLInputElement;
   const convertEolCheckboxHandler = () => {
-    term.setOption('convertEol', convertEolCheckbox.checked);
+    term.options.convertEol = convertEolCheckbox.checked;
   };
   convertEolCheckbox.addEventListener('change', convertEolCheckboxHandler);
   convertEolCheckboxHandler();
