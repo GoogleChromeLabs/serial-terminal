@@ -15,6 +15,9 @@
     .options {
       padding: 0.75em;
     }
+    .info {
+      float: right;
+    }
     #connect {
       margin-right: 2em;
     }
@@ -80,6 +83,10 @@
   <label class="checkbox" for="convert_eol">Convert EOL</label>
   <input id="autoconnect" type="checkbox">
   <label class="checkbox" for="autoconnect">Automatically connect</label>
+
+  <div class="info">
+    <a href="https://github.com/GoogleChromeLabs/serial-terminal">Source Code on GitHub</a>
+  </div>
 </div>
 <div id="terminal"></div>
 <script type="module" src="/src/index.ts"></script>
