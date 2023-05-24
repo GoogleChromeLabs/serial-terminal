@@ -420,6 +420,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   convertEolCheckbox.addEventListener('change', convertEolCheckboxHandler);
   convertEolCheckboxHandler();
 
+  const polyfillSwitcher =
+      document.getElementById('polyfill_switcher') as HTMLAnchorElement;
+  if (usePolyfill) {
+    polyfillSwitcher.href = './';
+    polyfillSwitcher.textContent = 'Switch to native API';
+  } else {
+    polyfillSwitcher.href = './?polyfill';
+    polyfillSwitcher.textContent = 'Switch to API polyfill';
+  }
+
   const serial = usePolyfill ? polyfill : navigator.serial;
   const ports: (SerialPort | SerialPortPolyfill)[] = await serial.getPorts();
   ports.forEach((port) => addNewPort(port));
