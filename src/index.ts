@@ -16,6 +16,7 @@
 
 import {Terminal} from 'xterm';
 import {FitAddon} from 'xterm-addon-fit';
+import {WebLinksAddon} from 'xterm-addon-web-links';
 import 'xterm/css/xterm.css';
 import {
   serial as polyfill, SerialPort as SerialPortPolyfill,
@@ -52,8 +53,12 @@ const bufferSize = 8 * 1024; // 8kB
 const term = new Terminal({
   scrollback: 10_000,
 });
+
 const fitAddon = new FitAddon();
 term.loadAddon(fitAddon);
+
+term.loadAddon(new WebLinksAddon());
+
 const encoder = new TextEncoder();
 let toFlush = '';
 term.onData((data) => {
