@@ -182,6 +182,24 @@ function clearTerminalContents(): void {
 }
 
 /**
+ * Send an RS232 break lasting 250ms
+ */
+function sendRs232Break(): void {
+  if (!port) {
+    return;
+  }
+  console.log('Start RS232 break');
+  port.setSignals({'break': true});
+  setTimeout(() => {
+    console.log('End RS232 break');
+    if (!port) {
+      return;
+    }
+    port.setSignals({'break': false});
+  }, 250);
+}
+
+/**
  * Sets |port| to the currently selected port. If none is selected then the
  * user is prompted for one.
  */
@@ -384,6 +402,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const clearOutput = document.getElementById('clear') as HTMLSelectElement;
   clearOutput.addEventListener('click', clearTerminalContents);
+
+  const sendBreak = document.getElementById('break') as HTMLSelectElement;
+  sendBreak.addEventListener('click', sendRs232Break);
 
   portSelector = document.getElementById('ports') as HTMLSelectElement;
 
