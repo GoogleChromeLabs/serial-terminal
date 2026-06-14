@@ -21,9 +21,9 @@
     "eslint": "^8.57.1",
     "eslint-config-google": "^0.14.0",
     "typescript": "^4.9.5",
-    "vite": "^6.4.2",
+    "vite": "^8.0.16",
     "vite-plugin-eslint": "^1.8.1",
-    "vite-plugin-pwa": "^0.21.1"
+    "vite-plugin-pwa": "^1.3.0"
   },
   "scripts": {
     "dev": "vite",
