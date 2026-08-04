@@ -208,7 +208,7 @@ async function getSelectedPort(): Promise<void> {
     try {
       const serial = usePolyfill ? polyfill : navigator.serial;
       port = await serial.requestPort({});
-    } catch (e) {
+    } catch {
       return;
     }
     const portOption = maybeAddNewPort(port);
