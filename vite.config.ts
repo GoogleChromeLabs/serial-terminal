@@ -1,4 +1,4 @@
-import eslint from 'vite-plugin-eslint'
+import eslint from 'vite-plugin-eslint2'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default {

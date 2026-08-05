@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-module.exports = {
-    "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended",
-        "google"
-    ],
-    "rules": {
-        "@typescript-eslint/no-explicit-any": "off",
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
     },
-    "env": {
-        "browser": true,
-        "es6": true
-    },
-    "parser": "@typescript-eslint/parser",
-    "plugins": ["@typescript-eslint"],
-  }
+  },
+  {
+    ignores: ['dist/**', 'dev-dist/**', 'node_modules/**'],
+  },
+);

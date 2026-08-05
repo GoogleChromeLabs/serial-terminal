@@ -157,8 +157,7 @@ function downloadTerminalContents(): void {
   const contents = term.getSelection();
   term.clearSelection();
   const linkContent = URL.createObjectURL(
-      new Blob([new TextEncoder().encode(contents).buffer],
-          {type: 'text/plain'}));
+      new Blob([contents], {type: 'text/plain'}));
   const fauxLink = document.createElement('a');
   fauxLink.download = `terminal_content_${new Date().getTime()}.txt`;
   fauxLink.href = linkContent;
@@ -208,7 +207,7 @@ async function getSelectedPort(): Promise<void> {
     try {
       const serial = usePolyfill ? polyfill : navigator.serial;
       port = await serial.requestPort({});
-    } catch (e) {
+    } catch {
       return;
     }
     const portOption = maybeAddNewPort(port);
