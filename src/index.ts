@@ -50,6 +50,11 @@ const urlParams = new URLSearchParams(window.location.search);
 const usePolyfill = urlParams.has('polyfill');
 const bufferSize = 8 * 1024; // 8kB
 
+const STRING_TERMINATOR = '\x1b\\';
+const COLOR_BLUE = '\x1b[34m';
+const COLOR_RED = '\x1b[91m';
+const COLOR_RESET = '\x1b[0m';
+
 const term = new Terminal({
   scrollback: 10_000,
 });
@@ -232,7 +237,7 @@ function getSelectedBaudRate(): number {
  * Resets the UI back to the disconnected state.
  */
 function markDisconnected(): void {
-  term.writeln('<DISCONNECTED>');
+  term.writeln(`${STRING_TERMINATOR}${COLOR_BLUE}<DISCONNECTED>${COLOR_RESET}`);
   portSelector.disabled = false;
   connectButton.textContent = 'Connect';
   connectButton.disabled = false;
@@ -283,13 +288,14 @@ async function connectToPort(): Promise<void> {
 
   try {
     await port.open(options);
-    term.writeln('<CONNECTED>');
+    term.writeln(`${STRING_TERMINATOR}${COLOR_BLUE}<CONNECTED>${COLOR_RESET}`);
     connectButton.textContent = 'Disconnect';
     connectButton.disabled = false;
   } catch (e) {
     console.error(e);
     if (e instanceof Error) {
-      term.writeln(`<ERROR: ${e.message}>`);
+      term.writeln(
+          `${STRING_TERMINATOR}${COLOR_RED}<ERROR: ${e.message}>${COLOR_RESET}`);
     }
     markDisconnected();
     return;
@@ -332,7 +338,9 @@ async function connectToPort(): Promise<void> {
       console.error(e);
       await new Promise<void>((resolve) => {
         if (e instanceof Error) {
-          term.writeln(`<ERROR: ${e.message}>`, resolve);
+          term.writeln(
+              `${STRING_TERMINATOR}${COLOR_RED}<ERROR: ${e.message}>${COLOR_RESET}`,
+              resolve);
         }
       });
     } finally {
@@ -349,7 +357,8 @@ async function connectToPort(): Promise<void> {
     } catch (e) {
       console.error(e);
       if (e instanceof Error) {
-        term.writeln(`<ERROR: ${e.message}>`);
+        term.writeln(
+            `${STRING_TERMINATOR}${COLOR_RED}<ERROR: ${e.message}>${COLOR_RESET}`);
       }
     }
 
@@ -376,7 +385,8 @@ async function disconnectFromPort(): Promise<void> {
     } catch (e) {
       console.error(e);
       if (e instanceof Error) {
-        term.writeln(`<ERROR: ${e.message}>`);
+        term.writeln(
+            `${STRING_TERMINATOR}${COLOR_RED}<ERROR: ${e.message}>${COLOR_RESET}`);
       }
     }
   }
